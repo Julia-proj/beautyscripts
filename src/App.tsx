@@ -1,15 +1,28 @@
 import React, { useState, useEffect } from "react"; 
-import InstaEmbed from "./components/InstaEmbed";
 
 const STRIPE_URL = "https://buy.stripe.com/5kQdRb8cbglMf7E7dSdQQ00";
 
-const INSTAGRAM_REELS: string[] = [
+const INSTAGRAM_REELS = [
   "https://www.instagram.com/reel/DJjUiEnM-A_/",
   "https://www.instagram.com/reel/DJSHB73ogs1/",
   "https://www.instagram.com/reel/DJmUkiNsZe1/",
   "https://www.instagram.com/reel/DJoAXfKs6tu/",
   "https://www.instagram.com/reel/DFX57cQobmS/"
 ];
+
+function InstaEmbed({ url, maxWidth = 260 }) {
+  return (
+    <iframe
+      src={`${url}embed/`}
+      width={maxWidth}
+      height={maxWidth * 1.78}
+      frameBorder="0"
+      scrolling="no"
+      allowTransparency={true}
+      allow="encrypted-media"
+    />
+  );
+}
 
 function useCountdown(hours = 12) {
   const [end] = useState(() => Date.now() + hours * 3600 * 1000);
@@ -25,19 +38,57 @@ function useCountdown(hours = 12) {
   return { h, m, s, finished: total <= 0 };
 }
 
-function SectionMarker({ n }: { n: string }) {
+function SectionMarker({ n }) {
   return (
-    <div 
-      className="absolute left-4 top-6 flex items-center gap-2 z-10 lg:left-0 lg:top-1 lg:-translate-x-14 lg:gap-2.5"
-      aria-hidden="true"
-    >
-      <span className="font-bold text-[11px] tracking-wider text-gray-400 lg:text-xs">{n}</span>
-      <span className="inline-block w-6 h-px bg-gradient-to-r from-amber-400/40 to-transparent lg:w-9" />
+    <div className="section-marker" aria-hidden="true">
+      <span className="marker-number">{n}</span>
+      <span className="marker-line" />
+      <style jsx>{`
+        .section-marker{
+          position:absolute; 
+          left: 1rem; 
+          top: 1.5rem;
+          display:flex; 
+          align-items:center; 
+          gap:8px;
+          z-index: 10;
+        }
+        @media (min-width: 1024px){
+          .section-marker{
+            left:0; 
+            top:0.25rem;
+            transform: translateX(-56px);
+            gap:10px;
+          }
+        }
+        .marker-number{
+          font-weight:700; 
+          font-size:11px; 
+          letter-spacing:.12em;
+          color: rgba(168, 181, 192, 0.7);
+        }
+        @media (min-width: 1024px){
+          .marker-number{
+            font-size:12px;
+          }
+        }
+        .marker-line{
+          display:inline-block; 
+          width:24px; 
+          height:1px;
+          background: linear-gradient(90deg, rgba(212, 175, 122, 0.4) 0%, transparent 100%);
+        }
+        @media (min-width: 1024px){
+          .marker-line{
+            width:36px;
+          }
+        }
+      `}</style>
     </div>
   );
 }
 
-function ReviewLightbox({ isOpen, onClose, imageSrc, reviewNumber }: { isOpen: boolean; onClose: () => void; imageSrc: string; reviewNumber: number }) {
+function ReviewLightbox({ isOpen, onClose, imageSrc, reviewNumber }) {
   if (!isOpen) return null;
 
   return (
@@ -77,19 +128,15 @@ function ScrollProgress() {
   return (
     <div className="fixed top-0 left-0 w-full h-1 bg-gray-200 z-50">
       <div 
-        className="h-full bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 transition-all duration-300"
+        className="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300"
         style={{ width: `${scrollProgress}%` }}
       />
     </div>
   );
 }
 
-function HighlightedDesc({
-  text,
-  primaryHighlight,
-  extraPhrases = []
-}: { text: string; primaryHighlight?: string; extraPhrases?: string[]; }) {
-  const escapeHtml = (s: string) =>
+function HighlightedDesc({ text, primaryHighlight, extraPhrases = [] }) {
+  const escapeHtml = (s) =>
     s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
   let html = escapeHtml(text);
@@ -98,7 +145,7 @@ function HighlightedDesc({
     const ph = escapeHtml(primaryHighlight);
     html = html.replace(
       new RegExp(ph.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g"),
-      `<span class="accent-text font-semibold">${ph}</span>`
+      `<span class="text-blue-600 font-semibold">${ph}</span>`
     );
   }
 
@@ -106,7 +153,7 @@ function HighlightedDesc({
     const p = escapeHtml(phrase);
     html = html.replace(
       new RegExp(p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g"),
-      `<span class="accent-text font-semibold">${p}</span>`
+      `<span class="text-blue-600 font-semibold">${p}</span>`
     );
   }
 
@@ -114,14 +161,14 @@ function HighlightedDesc({
 }
 
 export default function App() {
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [openFaq, setOpenFaq] = useState(null);
   const [viewersCount, setViewersCount] = useState(8);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxImage, setLightboxImage] = useState("");
   const [lightboxReviewNumber, setLightboxReviewNumber] = useState(1);
   const [showStickyCTA, setShowStickyCTA] = useState(false);
 
-  const toggleFaq = (i: number) => setOpenFaq(openFaq === i ? null : i);
+  const toggleFaq = (i) => setOpenFaq(openFaq === i ? null : i);
   const { h, m, s, finished } = useCountdown(12);
 
   useEffect(() => {
@@ -144,7 +191,7 @@ export default function App() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const openLightbox = (imageSrc: string, reviewNumber: number) => {
+  const openLightbox = (imageSrc, reviewNumber) => {
     setLightboxImage(imageSrc);
     setLightboxReviewNumber(reviewNumber);
     setLightboxOpen(true);
@@ -159,7 +206,7 @@ export default function App() {
       },
       { threshold: 0.3 }
     );
-    document.querySelectorAll<HTMLElement>(".js-heading").forEach((el) => io.observe(el));
+    document.querySelectorAll(".js-heading").forEach((el) => io.observe(el));
     return () => io.disconnect();
   }, []);
 
@@ -188,7 +235,7 @@ export default function App() {
             href={STRIPE_URL}
             target="_blank"
             rel="noopener"
-            className="px-4 sm:px-6 py-2 sm:py-2.5 bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white rounded-lg text-sm sm:text-base font-medium hover:shadow-lg transition-all hover:scale-105 transform min-h-[44px] flex items-center justify-center"
+            className="btn-premium px-4 sm:px-6 py-2 sm:py-2.5 bg-gray-900 text-white rounded-lg text-sm sm:text-base font-medium hover:bg-gray-800 transition-all hover:shadow-xl min-h-[44px] flex items-center justify-center"
             aria-label="Купить скрипты"
           >
             Купить
@@ -197,67 +244,98 @@ export default function App() {
       </header>
 
       <section className="relative min-h-[88vh] flex items-center pt-24 hero-bg">
-        <div className="absolute inset-0 hero-overlay"></div>
+        <div className="absolute inset-0 bg-black/15"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
+        <div className="absolute inset-0 lg:hidden bg-gradient-to-b from-white/40 via-transparent to-transparent pointer-events-none" />
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 w-full">
           <div className="max-w-2xl">
-            <div className="backdrop-blur-xl bg-white/90 rounded-3xl p-6 sm:p-8 shadow-2xl border border-white/50">
-              <h1 className="js-heading text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-4 sm:mb-5 text-gray-900">
-                Скрипты, которые превращают <span className="accent-gradient">сообщения в деньги</span>
-              </h1>
+            <h1 className="js-heading text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold leading-tight mb-4 sm:mb-5 hero-text-shadow" style={{color: '#0B0B0C'}}>
+              Скрипты, которые превращают <span className="text-blue-600">сообщения в деньги</span>
+            </h1>
 
-              <div className="relative pt-3 mt-2 mb-4 sm:mb-5 before:content-[''] before:absolute before:top-0 before:left-0 before:w-[60px] before:h-0.5 before:bg-gradient-to-r before:from-amber-500/60 before:to-transparent">
-                <p className="text-base sm:text-lg lg:text-xl font-semibold leading-relaxed text-gray-800">
+            <div className="result-subtitle mb-4 sm:mb-5">
+              <div className="hero-subtitle-bg">
+                <p className="text-base sm:text-lg lg:text-xl font-medium leading-relaxed" style={{color: '#1a202c'}}>
                   Проверенная система общения с клиентами для бьюти-мастеров
                 </p>
               </div>
+            </div>
 
-              <div className="inline-flex items-center gap-3 px-5 py-3 bg-gradient-to-r from-amber-50 to-orange-50 rounded-full border border-amber-200/50 mb-6 sm:mb-8">
-                <span className="w-2 h-2 bg-gradient-to-r from-amber-400 to-orange-500 rounded-full animate-pulse" />
-                <p className="text-sm sm:text-base font-semibold text-amber-900">
-                  <span className="font-bold">Результат:</span> закрытые возражения, увеличенный средний чек, экономия времени
-                </p>
-              </div>
+            <p className="text-sm sm:text-base lg:text-lg text-gray-900 mb-6 sm:mb-8 leading-relaxed hero-subtitle-bg" style={{display: 'inline-block'}}>
+              <span className="font-semibold italic">Результат:</span> закрытые возражения, увеличенный средний чек, экономия времени
+            </p>
 
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 mb-4">
-                <a
-                  href={STRIPE_URL}
-                  target="_blank"
-                  rel="noopener"
-                  className="inline-flex items-center gap-2 sm:gap-3 px-5 sm:px-6 lg:px-7 py-3 sm:py-3.5 lg:py-4 bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white rounded-xl text-base sm:text-lg font-semibold hover:shadow-xl transition-all hover:-translate-y-0.5 min-h-[48px]"
-                  aria-label="Купить скрипты за 19 евро"
-                >
-                  Купить <span className="inline-block ml-1">→</span>
-                </a>
-                <div className="hidden sm:flex items-center gap-2 text-xs sm:text-sm">
-                  <span className="px-2 py-1 bg-black text-white rounded">Apple Pay</span>
-                  <span className="px-2 py-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded">Google Pay</span>
-                </div>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 mb-4">
+              <a
+                href={STRIPE_URL}
+                target="_blank"
+                rel="noopener"
+                className="btn-premium inline-flex items-center gap-2 sm:gap-3 px-5 sm:px-6 lg:px-7 py-3 sm:py-3.5 lg:py-4 bg-gray-900 text-white rounded-xl text-base sm:text-lg font-semibold hover:bg-gray-800 transition-all hover:shadow-2xl min-h-[48px]"
+                aria-label="Купить скрипты за 19 евро"
+              >
+                Купить <span className="inline-block ml-1">→</span>
+              </a>
+              <div className="hidden sm:flex items-center gap-2 text-xs sm:text-sm">
+                <span className="px-2 py-1 bg-black text-white rounded">Apple Pay</span>
+                <span className="px-2 py-1 bg-blue-600 text-white rounded">Google Pay</span>
               </div>
+            </div>
 
-              <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600">
-                <span className="px-2 py-1 bg-white/80 rounded border border-gray-200">🔒 Безопасная оплата</span>
-                <span className="px-2 py-1 bg-white/80 rounded border border-gray-200">✓ Stripe</span>
-              </div>
+            <div className="flex flex-wrap items-center gap-2 text-xs text-gray-900">
+              <span className="px-2 py-1 bg-white/90 rounded border border-gray-300">🔒 Безопасная оплата</span>
+              <span className="px-2 py-1 bg-white/90 rounded border border-gray-300">✓ Stripe</span>
             </div>
           </div>
         </div>
+
+        <style jsx>{`
+          .hero-bg{
+            background-image: url('/images/IMG_6243.png');
+            background-size: cover;
+            background-position: 70% 60%;
+          }
+          @media (min-width: 1024px){
+            .hero-bg{
+              background-position: right center;
+            }
+          }
+          .result-subtitle {
+            position: relative;
+            padding-top: 12px;
+            margin-top: 8px;
+          }
+          .result-subtitle::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 60px;
+            height: 2px;
+            background: linear-gradient(90deg, rgba(59, 130, 246, 0.6) 0%, transparent 100%);
+          }
+          @media (max-width: 640px) {
+            .result-subtitle::before {
+              width: 50px;
+            }
+          }
+        `}</style>
       </section>
 
-      <section id="comparison" className="relative py-12 sm:py-14 lg:py-16 premium-bg-1">
+      <section id="comparison" className="relative py-12 sm:py-14 lg:py-16 premium-bg-gray">
         <SectionMarker n="01" />
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-10">
           <div className="text-center mb-2">
             <h2 className="js-heading text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">
-              Как изменится ваша <span className="accent-gradient">работа с клиентами</span>
+              Как изменится ваша <span className="text-blue-600">работа с клиентами</span>
             </h2>
-            <p className="mt-3 sm:mt-4 text-sm sm:text-base text-gray-600 reveal-up" style={{animationDelay:"120ms"}}>
+            <p className="mt-2 sm:mt-3 text-sm sm:text-base text-gray-600 reveal-up" style={{animationDelay:"120ms"}}>
               Сравните результаты до и после внедрения скриптов
             </p>
           </div>
 
           <div className="grid lg:grid-cols-2 gap-4 sm:gap-5 max-w-5xl mx-auto mt-6 sm:mt-8">
-            <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 lg:p-7 premium-shadow hover:shadow-xl transition-all duration-300 hover:-translate-y-1 reveal-up">
-              <div className="text-center mb-4 sm:mb-5">
+            <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 border border-gray-200 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 reveal-up">
+              <div className="text-center mb-3 sm:mb-4">
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-red-50 text-red-600 rounded-full font-medium text-xs sm:text-sm">
                   <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -265,14 +343,14 @@ export default function App() {
                   Сейчас
                 </div>
               </div>
-              <ul className="space-y-3 sm:space-y-4 text-xs sm:text-sm lg:text-base text-gray-800">
+              <ul className="space-y-2 sm:space-y-3 text-xs sm:text-sm lg:text-base text-gray-800">
                 {[
                   "«Сколько стоит?» → Отвечаете только ценой и тишина.",
                   "«Подумаю» → Не знаете, что ответить: клиент уходит.",
                   "«Переписка 30+ минут» → Клиент остывает, теряете заявку.",
                   "«10 заявок» → Долгие диалоги приводят только к 2–3 записям.",
                 ].map((t, i) => (
-                  <li key={i} className="flex gap-2 hover:bg-red-50 p-2 sm:p-2.5 rounded-lg transition-colors">
+                  <li key={i} className="flex gap-2 hover:bg-red-50 p-1.5 sm:p-2 rounded-lg transition-colors">
                     <svg className="w-4 h-4 mt-0.5 text-red-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
@@ -282,8 +360,8 @@ export default function App() {
               </ul>
             </div>
 
-            <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 lg:p-7 premium-shadow hover:shadow-xl transition-all duration-300 hover:-translate-y-1 reveal-up" style={{animationDelay:"120ms"}}>
-              <div className="text-center mb-4 sm:mb-5">
+            <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 border border-gray-200 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 reveal-up" style={{animationDelay:"120ms"}}>
+              <div className="text-center mb-3 sm:mb-4">
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-green-50 text-green-600 rounded-full font-medium text-xs sm:text-sm">
                   <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -291,14 +369,14 @@ export default function App() {
                   После
                 </div>
               </div>
-              <ul className="space-y-3 sm:space-y-4 text-xs sm:text-sm lg:text-base text-gray-800">
+              <ul className="space-y-2 sm:space-y-3 text-xs sm:text-sm lg:text-base text-gray-800">
                 {[
                   "«Сколько стоит?» → Презентуете ценность, получаете запись.",
                   "«Подумаю» → Мягкое возражение возвращает к записи.",
                   "«Переписка 5 минут» → Готовые фразы ведут к быстрой записи.",
                   "«10 заявок» → Чёткие диалоги дают 6–7 записей.",
                 ].map((t, i) => (
-                  <li key={i} className="flex gap-2 hover:bg-green-50 p-2 sm:p-2.5 rounded-lg transition-colors">
+                  <li key={i} className="flex gap-2 hover:bg-green-50 p-1.5 sm:p-2 rounded-lg transition-colors">
                     <svg className="w-4 h-4 mt-0.5 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
@@ -311,51 +389,51 @@ export default function App() {
         </div>
       </section>
 
-      <section id="why" className="relative py-12 sm:py-14 lg:py-16 premium-bg-2">
+      <section id="why" className="relative py-12 sm:py-14 lg:py-16 premium-bg-white">
         <SectionMarker n="02" />
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="text-center">
             <h2 className="js-heading text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">
-              Почему это <span className="accent-gradient">важно</span>
+              Почему это <span className="text-dusty-rose">важно</span>
             </h2>
-            <p className="mt-3 sm:mt-4 text-sm sm:text-base text-gray-600 reveal-up" style={{animationDelay:"120ms"}}>
+            <p className="mt-2 sm:mt-3 text-sm sm:text-base text-gray-600 reveal-up" style={{animationDelay:"120ms"}}>
               Каждая потерянная заявка — это упущенная прибыль
             </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5 mt-6 sm:mt-8">
-            <div className="rounded-2xl sm:rounded-3xl border border-gray-100 bg-white p-5 sm:p-6 text-center premium-shadow hover:shadow-xl transition-all duration-300 hover:-translate-y-1 reveal-up">
+            <div className="rounded-xl sm:rounded-2xl border p-4 sm:p-5 text-center hover:shadow-lg transition-all duration-300 hover:-translate-y-1 reveal-up">
               <img
                 src="/images/money.png"
                 alt="Сливаются деньги"
-                className="mx-auto mb-4 sm:mb-5 w-14 h-14 sm:w-16 sm:h-16 object-contain"
+                className="mx-auto mb-3 sm:mb-4 w-12 h-12 sm:w-14 sm:h-14 object-contain"
                 loading="lazy"
               />
-              <h3 className="font-bold text-sm sm:text-base mb-2">Сливаются деньги на рекламу</h3>
+              <h3 className="font-semibold text-sm sm:text-base">Сливаются деньги на рекламу</h3>
               <p className="mt-2 text-xs sm:text-sm text-gray-600 leading-relaxed">
                 Платите за заявки, но конвертируете лишь 20–30%. Остальные — выброшенный бюджет.
               </p>
             </div>
-            <div className="rounded-2xl sm:rounded-3xl border border-gray-100 bg-white p-5 sm:p-6 text-center premium-shadow hover:shadow-xl transition-all duration-300 hover:-translate-y-1 reveal-up" style={{animationDelay:"120ms"}}>
+            <div className="rounded-xl sm:rounded-2xl border p-4 sm:p-5 text-center hover:shadow-lg transition-all duration-300 hover:-translate-y-1 reveal-up" style={{animationDelay:"120ms"}}>
               <img
                 src="/images/clock.png"
                 alt="Тратится время"
-                className="mx-auto mb-4 sm:mb-5 w-14 h-14 sm:w-16 sm:h-16 object-contain"
+                className="mx-auto mb-3 sm:mb-4 w-12 h-12 sm:w-14 sm:h-14 object-contain"
                 loading="lazy"
               />
-              <h3 className="font-bold text-sm sm:text-base mb-2">Тратится время впустую</h3>
+              <h3 className="font-semibold text-sm sm:text-base">Тратится время впустую</h3>
               <p className="mt-2 text-xs sm:text-sm text-gray-600 leading-relaxed">
                 По 30–40 минут на переписку с каждым. Уходит 3–4 часа в день.
               </p>
             </div>
-            <div className="rounded-2xl sm:rounded-3xl border border-gray-100 bg-white p-5 sm:p-6 text-center premium-shadow hover:shadow-xl transition-all duration-300 hover:-translate-y-1 reveal-up" style={{animationDelay:"200ms"}}>
+            <div className="rounded-xl sm:rounded-2xl border p-4 sm:p-5 text-center hover:shadow-lg transition-all duration-300 hover:-translate-y-1 reveal-up" style={{animationDelay:"200ms"}}>
               <img
                 src="/images/door.png"
                 alt="Уходят к конкуренту"
-                className="mx-auto mb-4 sm:mb-5 w-14 h-14 sm:w-16 sm:h-16 object-contain"
+                className="mx-auto mb-3 sm:mb-4 w-12 h-12 sm:w-14 sm:h-14 object-contain"
                 loading="lazy"
               />
-              <h3 className="font-bold text-sm sm:text-base mb-2">Заявки уходят к конкуренту</h3>
+              <h3 className="font-semibold text-sm sm:text-base">Заявки уходят к конкуренту</h3>
               <p className="mt-2 text-xs sm:text-sm text-gray-600 leading-relaxed">
                 Пока вы думаете, клиент записывается к тем, кто отвечает быстро и уверенно.
               </p>
@@ -364,14 +442,14 @@ export default function App() {
         </div>
       </section>
 
-      <section id="for" className="relative py-12 sm:py-14 lg:py-16 premium-bg-3">
+      <section id="for" className="relative py-12 sm:py-14 lg:py-16 bg-gradient-to-br from-emerald-50/20 via-teal-50/15 to-cyan-50/20">
         <SectionMarker n="03" />
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <h2 className="js-heading text-2xl sm:text-3xl lg:text-4xl font-bold text-center text-gray-900 mb-8">
-            Кому подходят <span className="accent-gradient">скрипты</span>
+          <h2 className="js-heading text-2xl sm:text-3xl lg:text-4xl font-bold text-center text-gray-900">
+            Кому подходят <span className="text-dusty-green">скрипты</span>
           </h2>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 mt-6 sm:mt-8">
             {[
               {
                 img: "/images/salon.png",
@@ -396,36 +474,36 @@ export default function App() {
             ].map((c, i) => (
               <div
                 key={i}
-                className="bg-white/90 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-5 sm:p-6 border-2 border-emerald-200/40 hover:border-emerald-300/60 premium-shadow hover:shadow-[0_0_25px_rgba(16,185,129,0.2)] transition-all duration-300 hover:-translate-y-0.5 reveal-up"
+                className="bg-white/80 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-5 border-2 border-emerald-200/40 hover:border-emerald-300/60 hover:shadow-[0_0_15px_rgba(16,185,129,0.15)] transition-all duration-300 hover:-translate-y-0.5 reveal-up"
                 style={{animationDelay: `${i*80}ms`}}
               >
-                <div className="flex items-center gap-3 mb-3">
+                <div className="flex items-center gap-3">
                   <img
                     src={c.img}
                     alt=""
-                    className="w-12 h-12 sm:w-14 sm:h-14 object-contain"
+                    className="w-10 h-10 sm:w-12 sm:h-12 object-contain"
                     loading="lazy"
                   />
-                  <h3 className="text-base sm:text-lg font-bold text-gray-900">{c.title}</h3>
+                  <h3 className="text-sm sm:text-base lg:text-lg font-bold text-gray-900">{c.title}</h3>
                 </div>
-                <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">{c.text}</p>
+                <p className="mt-2 sm:mt-3 text-xs sm:text-sm text-gray-600 leading-relaxed">{c.text}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section id="whats-included" className="relative py-12 sm:py-14 lg:py-16 premium-bg-4">
+      <section id="whats-included" className="relative py-12 sm:py-14 lg:py-16 premium-bg-white">
         <SectionMarker n="04" />
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="text-center">
             <h2 className="js-heading text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">
-              Что входит в <span className="accent-gradient">систему скриптов</span>
+              Что входит в <span className="text-blue-600">систему скриптов</span>
             </h2>
-            <p className="mt-3 sm:mt-4 text-sm sm:text-base text-gray-600 reveal-up" style={{animationDelay:"120ms"}}>Полный набор инструментов для увеличения продаж</p>
+            <p className="mt-2 sm:mt-3 text-sm sm:text-base text-gray-600 reveal-up" style={{animationDelay:"120ms"}}>Полный набор инструментов для увеличения продаж</p>
           </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 mt-6 sm:mt-8">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-5 mt-6 sm:mt-8">
             {[
               {
                 img: "/images/xmind.png",
@@ -464,15 +542,16 @@ export default function App() {
                 highlight: "выше средний чек"
               },
             ].map((item, k) => (
-              <div key={k} className="rounded-2xl sm:rounded-3xl border border-gray-100 bg-white p-4 sm:p-5 premium-shadow hover:shadow-xl transition-all duration-300 hover:-translate-y-1 reveal-up" style={{animationDelay:`${k*80}ms`}}>
+              <div key={k} className="rounded-xl sm:rounded-2xl border p-3 sm:p-4 lg:p-5 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 reveal-up" style={{animationDelay:`${k*80}ms`}}>
                 <img 
                   src={item.img} 
                   alt="" 
-                  className={`object-contain mb-3 sm:mb-4 ${item.img.includes('rocket') ? 'w-10 h-10 sm:w-12 sm:h-12' : 'w-9 h-9 sm:w-10 sm:h-10'}`}
+                  className="w-8 h-8 sm:w-10 sm:h-10 object-contain mb-2 sm:mb-3" 
+                  style={item.img.includes('rocket') ? {transform: 'scale(1.2)'} : {}}
                   loading="lazy" 
                 />
-                <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-2">{item.title}</h3>
-                <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
+                <h3 className="text-sm sm:text-base lg:text-lg font-bold text-gray-900">{item.title}</h3>
+                <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-gray-600 leading-relaxed">
                   <HighlightedDesc
                     text={item.desc}
                     primaryHighlight={item.highlight}
@@ -485,14 +564,14 @@ export default function App() {
         </div>
       </section>
 
-      <section id="bonuses" className="relative py-12 sm:py-14 lg:py-16 premium-bg-5 overflow-hidden">
+      <section id="bonuses" className="relative py-12 sm:py-14 lg:py-16 bg-gradient-to-br from-blue-50/20 via-rose-50/15 to-amber-50/20 overflow-hidden">
         <SectionMarker n="05" />
         <div className="max-w-6xl mx-auto px-4 sm:px-6 relative">
           <div className="text-center">
             <h2 className="js-heading text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">
-              <span className="accent-gradient">Бонусы</span> при покупке
+              <span className="text-blue-600">Бонусы</span> при покупке
             </h2>
-            <p className="mt-3 sm:mt-4 text-sm sm:text-base text-gray-600 reveal-up" style={{animationDelay:"120ms"}}>Суммарная ценность — 79€. Сегодня идут бесплатно со скриптами</p>
+            <p className="mt-2 sm:mt-3 text-sm sm:text-base text-gray-600 reveal-up" style={{animationDelay:"120ms"}}>Суммарная ценность — 79€. Сегодня идут бесплатно со скриптами</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5 mt-6 sm:mt-8">
@@ -501,13 +580,13 @@ export default function App() {
               { image: "/images/bonus2.png", title: "Чек-лист «30+ источников клиентов»", desc: "Платные и бесплатные способы → где взять заявки уже сегодня.", old: "32€" },
               { image: "/images/bonus3.png", title: "Гайд «Продажи на консультации»", desc: "5 этапов продаж → мягкий апсейл дополнительных услуг.", old: "20€" },
             ].map((b, i) => (
-              <div key={i} className="rounded-2xl sm:rounded-3xl p-5 sm:p-6 text-center bg-white premium-shadow hover:shadow-xl hover:-translate-y-2 transition-all duration-300 reveal-up" style={{animationDelay:`${i*100}ms`}}>
-                <div className="mb-4 sm:mb-5">
-                  <img src={b.image} alt={`Бонус ${i + 1}`} className="w-24 h-32 sm:w-28 sm:h-36 mx-auto object-cover rounded-xl" loading="lazy" />
+              <div key={i} className="rounded-xl sm:rounded-2xl p-4 sm:p-5 text-center bg-white shadow-sm border hover:shadow-xl hover:-translate-y-2 transition-all duration-300 reveal-up" style={{animationDelay:`${i*100}ms`}}>
+                <div className="mb-3 sm:mb-4">
+                  <img src={b.image} alt={`Бонус ${i + 1}`} className="w-24 h-32 sm:w-28 sm:h-36 mx-auto object-cover rounded-lg" loading="lazy" />
                 </div>
-                <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-2">{b.title}</h3>
-                <p className="mt-2 text-xs sm:text-sm text-gray-600 leading-relaxed mb-3">{b.desc}</p>
-                <div className="flex items-center justify-center gap-2">
+                <h3 className="text-sm sm:text-base font-bold text-gray-900">{b.title}</h3>
+                <p className="mt-2 text-xs sm:text-sm text-gray-600 leading-relaxed">{b.desc}</p>
+                <div className="mt-3 flex items-center justify-center gap-2">
                   <span className="text-sm sm:text-base font-bold text-gray-400 line-through">{b.old}</span>
                   <span className="text-base sm:text-lg font-bold text-green-600">0€</span>
                 </div>
@@ -517,23 +596,23 @@ export default function App() {
         </div>
       </section>
 
-      <section id="immediate" className="relative py-12 sm:py-14 lg:py-16 premium-bg-2">
+      <section id="immediate" className="relative py-12 sm:py-14 lg:py-16 premium-bg-gray">
         <SectionMarker n="06" />
-        <div className="max-w-4xl mx-auto px-4 sm:px-6">
-          <h2 className="js-heading text-2xl sm:text-3xl lg:text-4xl font-bold text-center text-gray-900 mb-8">
-            <span className="accent-gradient">Что изменится сразу</span>
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 relative z-10">
+          <h2 className="js-heading text-2xl sm:text-3xl lg:text-4xl font-bold text-center text-gray-900">
+            <span className="text-dusty-teal">Что изменится сразу</span>
           </h2>
 
-          <div className="space-y-4 sm:space-y-5">
+          <div className="space-y-4 sm:space-y-5 mt-6 sm:mt-8">
             {[
               "Перестанешь терять заявки из-за слабых ответов.",
               "Начнёшь закрывать больше записей уже с первого дня.",
               "Повысишь средний чек через правильные предложения.",
               "Станешь увереннее — на всё есть готовый ответ.",
             ].map((t, i) => (
-              <div key={i} className="flex items-start gap-3 sm:gap-4 bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 premium-shadow hover:shadow-xl transition-all duration-300 hover:-translate-y-1 reveal-up" style={{animationDelay:`${i*80}ms`}}>
-                <div className="w-6 h-6 sm:w-7 sm:h-7 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div key={i} className="flex items-start gap-3 sm:gap-4 bg-white p-4 sm:p-5 rounded-xl sm:rounded-2xl hover:shadow-lg transition-all duration-300 hover:-translate-y-1 reveal-up" style={{animationDelay:`${i*80}ms`}}>
+                <div className="w-5 h-5 sm:w-6 sm:h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <svg className="w-3 h-3 sm:w-4 sm:h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
@@ -544,21 +623,21 @@ export default function App() {
         </div>
       </section>
 
-      <section id="reviews" className="relative py-12 sm:py-14 lg:py-16 premium-bg-6">
+      <section id="reviews" className="relative py-12 sm:py-14 lg:py-16 premium-bg-white">
         <SectionMarker n="07" />
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <h2 className="js-heading text-2xl sm:text-3xl lg:text-4xl font-bold text-center text-gray-900 mb-8 sm:mb-10">
             Отзывы клиентов
           </h2>
 
-          <div className="bg-white/50 backdrop-blur-sm rounded-3xl p-6 sm:p-8 premium-shadow">
+          <div className="bg-gradient-to-br from-gray-50/80 to-white/80 backdrop-blur-sm rounded-3xl p-6 sm:p-8 shadow-lg border border-gray-200/50">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-8 sm:mb-10">
               {[1, 2, 3, 4].map((n) => (
                 <div key={n} className="group cursor-pointer reveal-up" style={{animationDelay:`${n*60}ms`}}>
                   <img
                     src={`/images/reviews/review${n}.png`}
                     alt={`Отзыв ${n}`}
-                    className="w-full h-48 sm:h-56 lg:h-64 object-cover rounded-2xl border-2 border-gray-200 hover:border-amber-300 hover:shadow-xl transition-all duration-300 group-hover:scale-[1.02]"
+                    className="w-full h-48 sm:h-56 lg:h-64 object-cover rounded-xl sm:rounded-2xl border-2 border-gray-200/60 hover:border-blue-300/60 hover:shadow-2xl transition-all duration-500 group-hover:scale-[1.03]"
                     onClick={() => openLightbox(`/images/reviews/review${n}.png`, n)}
                     loading="lazy"
                   />
@@ -566,11 +645,11 @@ export default function App() {
               ))}
             </div>
 
-            <div className="flex gap-3 sm:gap-4 justify-center items-start overflow-x-auto pb-2 snap-x snap-mandatory">
+            <div className="flex gap-3 sm:gap-4 justify-center items-start mb-0 overflow-x-auto pb-2 reels-row">
               {INSTAGRAM_REELS.map((url, idx) => (
                 <div
                   key={url}
-                  className="reel-card rounded-2xl overflow-hidden border-2 border-gray-200 shadow-md flex-shrink-0 hover:shadow-xl hover:scale-[1.02] hover:border-amber-300 transition-all duration-300 snap-center"
+                  className="reel-card rounded-xl overflow-hidden border-2 border-gray-300/60 shadow-lg flex-shrink-0 hover:shadow-2xl hover:scale-[1.03] hover:border-blue-300/70 transition-all duration-500"
                   style={{animationDelay:`${idx*100}ms`}}
                 >
                   <InstaEmbed url={url} maxWidth={260} />
@@ -581,36 +660,36 @@ export default function App() {
         </div>
       </section>
 
-      <section id="offer" className="relative py-12 sm:py-14 lg:py-16 bg-white">
+      <section id="offer" className="relative py-12 sm:py-14 lg:py-16 premium-bg-gray">
         <SectionMarker n="08" />
-        <div className="max-w-4xl mx-auto px-4 sm:px-6">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 relative z-10">
           <div className="text-center mb-8 sm:mb-10">
-            <h2 className="js-heading text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">
-              Полная система со скидкой <span className="accent-gradient">87%</span>
+            <h2 className="js-heading text-2xl sm:text-3xl lg:text-4xl font-extrabold text-gray-900">
+              Полная система со скидкой <span className="text-blue-600">85%</span>
             </h2>
-            <p className="mt-3 text-xs sm:text-sm text-gray-500 reveal-up" style={{animationDelay:"120ms"}}>
+            <p className="mt-2 text-xs sm:text-sm text-gray-500 reveal-up" style={{animationDelay:"120ms"}}>
               Специальное предложение на этой неделе • Предложение действует ограниченное время
             </p>
           </div>
 
           <div className="max-w-lg mx-auto">
-            <div className="rounded-3xl sm:rounded-[2rem] p-6 sm:p-8 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white shadow-2xl relative overflow-hidden hover:shadow-3xl transition-all duration-300 hover:scale-105 reveal-up">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full -translate-y-16 translate-x-16"></div>
-              <div className="absolute bottom-0 left-0 w-24 h-24 bg-orange-400/10 rounded-full translate-y-12 -translate-x-12"></div>
+            <div className="rounded-2xl sm:rounded-3xl p-6 sm:p-8 bg-slate-800 text-white shadow-2xl relative overflow-hidden hover:shadow-3xl transition-all duration-500 hover:scale-[1.02] reveal-up">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full -translate-y-16 translate-x-16"></div>
+              <div className="absolute bottom-0 left-0 w-24 h-24 bg-rose-400/10 rounded-full translate-y-12 -translate-x-12"></div>
               
               <div className="relative z-10">
                 <div className="text-center">
-                  <div className="text-xs sm:text-sm uppercase tracking-wide text-gray-300 mb-3 sm:mb-4">
+                  <div className="text-xs sm:text-sm uppercase tracking-wide text-gray-300 mb-2 sm:mb-3">
                     Полный доступ
                   </div>
                   
-                  <div className="flex items-center justify-center gap-3 sm:gap-4 mb-5 sm:mb-7">
-                    <span className="text-gray-400 line-through text-xl sm:text-2xl">146€</span>
+                  <div className="flex items-center justify-center gap-3 sm:gap-4 mb-4 sm:mb-6">
+                    <span className="text-gray-400 line-through text-xl sm:text-2xl">127€</span>
                     <span className="text-4xl sm:text-5xl font-extrabold text-white">19€</span>
                   </div>
 
-                  <div className="mb-5 sm:mb-7">
-                    <div className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-orange-500 to-amber-600 px-4 sm:px-5 py-2 sm:py-2.5 hover:from-orange-600 hover:to-amber-700 transition-all">
+                  <div className="mb-4 sm:mb-6">
+                    <div className="inline-flex items-center gap-2 rounded-full bg-orange-500 px-3 sm:px-4 py-1.5 sm:py-2 hover:bg-orange-600 transition-colors">
                       <span className="text-white">⏰</span>
                       {!finished ? (
                         <>
@@ -631,21 +710,21 @@ export default function App() {
                     href={STRIPE_URL}
                     target="_blank"
                     rel="noopener"
-                    className="block w-full text-center rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white font-bold py-3 sm:py-4 px-4 sm:px-6 hover:from-amber-600 hover:via-orange-600 hover:to-amber-700 transition-all transform hover:scale-105 shadow-lg hover:shadow-xl mb-4 sm:mb-5 min-h-[48px]"
-                    aria-label="Купить полную систему со скидкой 87% — 19 евро"
+                    className="btn-premium block w-full text-center rounded-xl bg-blue-500 text-white font-bold py-3 sm:py-4 px-4 sm:px-6 hover:bg-blue-600 transition-all shadow-lg hover:shadow-2xl mb-3 sm:mb-4 min-h-[48px]"
+                    aria-label="Купить полную систему со скидкой 85% — 19 евро"
                   >
-                    Получить со скидкой 87%
+                    Получить со скидкой 85%
                   </a>
 
-                  <div className="text-xs text-gray-300 mb-5 sm:mb-7">
+                  <div className="text-xs text-gray-300 mb-4 sm:mb-6">
                     Без скрытых платежей • Пожизненный доступ • Обновления включены
                   </div>
 
-                  <div className="text-left mb-5 sm:mb-7">
-                    <h3 className="text-base sm:text-lg font-bold text-white mb-3 sm:mb-4 text-center">Что входит:</h3>
-                    <ul className="space-y-2 sm:space-y-2.5 text-xs sm:text-sm text-gray-200">
+                  <div className="text-left mb-4 sm:mb-6">
+                    <h3 className="text-base sm:text-lg font-bold text-white mb-2 sm:mb-3 text-center">Что входит:</h3>
+                    <ul className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-gray-200">
                       {[
-                        "Готовые диалоги для всех ситуаций (67€)",
+                        "Готовые диалоги для всех ситуаций",
                         "Шаблоны под конкретную услугу",
                         "Бонус: гайд по работе с базой (27€)",
                         "Бонус: 30+ источников клиентов (32€)",
@@ -660,7 +739,7 @@ export default function App() {
                     </ul>
                   </div>
 
-                  <div className="flex items-center justify-center gap-2 text-xs flex-wrap">
+                  <div className="flex items-center justify-center gap-1.5 sm:gap-2 text-xs flex-wrap">
                     <div className="px-2 py-1 bg-black text-white rounded">Apple Pay</div>
                     <div className="px-2 py-1 bg-white/20 text-white rounded">Google Pay</div>
                     <div className="px-2 py-1 bg-white/20 text-white rounded">Visa</div>
@@ -673,31 +752,31 @@ export default function App() {
         </div>
       </section>
 
-      <section id="faq" className="relative py-12 sm:py-14 lg:py-16 premium-bg-2">
+      <section id="faq" className="relative py-12 sm:py-14 lg:py-16 premium-bg-white">
         <SectionMarker n="09" />
         <div className="max-w-4xl mx-auto px-4 sm:px-6">
-          <h2 className="js-heading text-2xl sm:text-3xl lg:text-4xl font-bold text-center text-gray-900 mb-8">
+          <h2 className="js-heading text-2xl sm:text-3xl lg:text-4xl font-bold text-center text-gray-900">
             Частые вопросы
           </h2>
 
-          <div className="space-y-3 sm:space-y-4">
+          <div className="space-y-3 sm:space-y-4 mt-6 sm:mt-8">
             {[
               { q: "Сработает в моей нише?", a: "Да. База универсальная и блоки под ногти/бровы/ресницы/волосы/косметологию/перманент." },
               { q: "Не будет ли звучать «по-скриптовому»?", a: "Нет. Формулировки живые, адаптируешь под свой тон. Главное — следовать алгоритму." },
               { q: "Зачем это админам?", a: "Единый стандарт повышает конверсию, скорость и управляемость. Новички включаются быстрее." },
               { q: "Когда будут результаты?", a: "Часто в первые 24 часа: готовые фразы экономят время и быстрее ведут к записи." },
             ].map((f, i) => (
-              <div key={i} className="border border-gray-200 rounded-2xl sm:rounded-3xl overflow-hidden bg-white premium-shadow hover:shadow-xl transition-all duration-300 reveal-up" style={{animationDelay:`${i*80}ms`}}>
+              <div key={i} className="border border-gray-200 rounded-xl sm:rounded-2xl overflow-hidden bg-gray-50 hover:shadow-lg transition-all duration-300 reveal-up" style={{animationDelay:`${i*80}ms`}}>
                 <button
                   onClick={() => toggleFaq(i)}
-                  className="w-full px-5 sm:px-6 lg:px-8 py-4 sm:py-5 text-left hover:bg-gray-50 flex justify-between items-center transition-colors min-h-[48px]"
+                  className="w-full px-5 sm:px-6 lg:px-8 py-4 sm:py-5 text-left hover:bg-gray-100 flex justify-between items-center transition-colors min-h-[48px]"
                   aria-label={`Вопрос: ${f.q}`}
                 >
-                  <span className="font-bold text-sm sm:text-base lg:text-lg text-gray-900 pr-4">{f.q}</span>
+                  <span className="font-semibold text-sm sm:text-base lg:text-lg text-gray-900 pr-4">{f.q}</span>
                   <span className={`w-5 h-5 text-gray-400 transition-transform flex-shrink-0 ${openFaq === i ? "rotate-180" : ""}`}>⌄</span>
                 </button>
                 {openFaq === i && (
-                  <div className="px-5 sm:px-6 lg:px-8 py-4 sm:py-5 border-t border-gray-200 bg-gray-50">
+                  <div className="px-5 sm:px-6 lg:px-8 py-4 sm:py-5 border-t border-gray-200">
                     <p className="text-xs sm:text-sm lg:text-base text-gray-700 leading-relaxed">{f.a}</p>
                   </div>
                 )}
@@ -720,7 +799,7 @@ export default function App() {
             href={STRIPE_URL}
             target="_blank"
             rel="noopener"
-            className="w-full bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white py-3 px-4 rounded-xl font-semibold text-sm text-center block hover:shadow-lg transition-all flex items-center justify-between min-h-[48px]"
+            className="btn-premium w-full bg-gray-900 text-white py-3 px-4 rounded-xl font-semibold text-sm text-center block hover:bg-gray-800 transition-all flex items-center justify-between min-h-[48px]"
             aria-label="Купить скрипты за 19 евро"
           >
             <span>Скрипты — 19€</span>
@@ -728,6 +807,187 @@ export default function App() {
           </a>
         </div>
       )}
+
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+        
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+        
+        body {
+          font-family: 'Inter', sans-serif;
+          line-height: 1.7;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+          font-family: 'Montserrat', sans-serif;
+          letter-spacing: -0.025em;
+        }
+        
+        h1 {
+          font-weight: 600;
+          line-height: 1.2;
+        }
+        
+        h2 {
+          font-weight: 500;
+          line-height: 1.3;
+        }
+        
+        h3 {
+          font-weight: 500;
+        }
+        
+        .text-dusty-rose {
+          color: rgb(185, 127, 127);
+        }
+        
+        .text-dusty-green {
+          color: rgb(120, 150, 130);
+        }
+        
+        .text-dusty-teal {
+          color: rgb(115, 145, 150);
+        }
+        
+        .premium-bg-white {
+          background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+        }
+        
+        .premium-bg-gray {
+          background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+          position: relative;
+        }
+        
+        .premium-bg-gray::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background-image: 
+            radial-gradient(circle at 20% 30%, rgba(229, 231, 235, 0.3) 0%, transparent 50%),
+            radial-gradient(circle at 80% 70%, rgba(243, 244, 246, 0.4) 0%, transparent 50%);
+          pointer-events: none;
+        }
+        
+        .hero-text-shadow {
+          text-shadow: 0 2px 8px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .hero-subtitle-bg {
+          background: rgba(255, 255, 255, 0.85);
+          backdrop-filter: blur(8px);
+          padding: 0.5rem 1rem;
+          border-radius: 0.5rem;
+          display: inline-block;
+        }
+        
+        @keyframes fade-in {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        @keyframes slide-up {
+          from {
+            transform: translateY(100%);
+          }
+          to {
+            transform: translateY(0);
+          }
+        }
+        
+        .reveal-up {
+          opacity: 0;
+          animation: fade-in 0.8s ease-out forwards;
+        }
+        
+        .animate-slide-up {
+          animation: slide-up 0.3s ease-out;
+        }
+        
+        .btn-premium {
+          position: relative;
+          overflow: hidden;
+          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        .btn-premium::before {
+          content: '';
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          width: 0;
+          height: 0;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.1);
+          transform: translate(-50%, -50%);
+          transition: width 0.6s, height 0.6s;
+        }
+        
+        .btn-premium:hover::before {
+          width: 300px;
+          height: 300px;
+        }
+        
+        .btn-premium:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
+        }
+        
+        .reels-row {
+          scroll-snap-type: x mandatory;
+        }
+        
+        .reels-row > * {
+          scroll-snap-align: center;
+        }
+        
+        .reel-card {
+          width: 180px;
+          height: 320px;
+        }
+        
+        @media (min-width: 640px) {
+          .reel-card {
+            width: 220px;
+            height: 391px;
+          }
+        }
+        
+        @media (min-width: 1024px) {
+          .reel-card {
+            width: 260px;
+            height: 462px;
+          }
+        }
+        
+        .reel-card iframe {
+          width: 100% !important;
+          height: 100% !important;
+          display: block;
+          border: none;
+        }
+        
+        .js-heading {
+          opacity: 0;
+          transform: translateY(14px);
+          transition: opacity 0.7s ease, transform 0.7s ease;
+          will-change: opacity, transform;
+        }
+        
+        .js-heading.head-in {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      `}</style>
     </div>
   );
 }
