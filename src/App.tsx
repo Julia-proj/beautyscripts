@@ -1,3 +1,5 @@
+лови полный файл с внесёнными обновлениями (мобайл — фото отдельным <img> без обрезки, hero на 100dvh, мягкое свечение для “Результат”, десктоп/планшет — как у тебя, маркеры секций не пересекаются). Ничего лишнего не удалял.
+
 import React, { useState, useEffect } from "react";
 import InstaEmbed from "./components/InstaEmbed";
 
@@ -34,38 +36,20 @@ function SectionMarker({ n }: { n: string }) {
       <style jsx>{`
         .section-marker{
           position:absolute;
-          left:.75rem;            /* дальше от заголовка на мобиле */
-          top:.5rem;              /* выше — не пересекается */
-          display:flex;
-          align-items:center;
-          gap:8px;
-          z-index:10;
-          opacity:0;
-          transform: translateY(6px);
-          animation: marker-in .7s ease forwards;
-          animation-delay:.15s;
+          left:.75rem; /* дальше от заголовка на мобиле */
+          top:.5rem;   /* выше, чтобы не пересекаться */
+          display:flex; align-items:center; gap:8px;
+          z-index:10; opacity:0; transform: translateY(6px);
+          animation: marker-in .7s ease forwards; animation-delay:.15s;
         }
         @media (min-width:1024px){
-          .section-marker{
-            left:0;
-            top:0.25rem;
-            transform: translate(-56px,6px);
-          }
+          .section-marker{ left:0; top:.25rem; transform: translate(-56px,6px); }
         }
-        .marker-number{
-          font-weight:700; font-size:13px; letter-spacing:.12em;
-          color: rgba(168,181,192,.78);
-        }
+        .marker-number{ font-weight:700; font-size:13px; letter-spacing:.12em; color:rgba(168,181,192,.78); }
         @media (min-width:1024px){ .marker-number{ font-size:15px; } }
-        .marker-line{
-          display:inline-block; width:24px; height:1px;
-          background: linear-gradient(90deg, rgba(212,175,122,.45) 0%, transparent 100%);
-        }
+        .marker-line{ width:24px; height:1px; background:linear-gradient(90deg, rgba(212,175,122,.45) 0%, transparent 100%); }
         @media (min-width:1024px){ .marker-line{ width:36px; } }
-        @keyframes marker-in {
-          from { opacity:0; transform: translateY(10px); }
-          to   { opacity:1; transform: translateY(0);    }
-        }
+        @keyframes marker-in{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
       `}</style>
     </div>
   );
@@ -110,9 +94,7 @@ function ScrollProgress() {
 }
 
 function HighlightedDesc({
-  text,
-  primaryHighlight,
-  extraPhrases = []
+  text, primaryHighlight, extraPhrases = []
 }: { text: string; primaryHighlight?: string; extraPhrases?: string[]; }) {
   const escapeHtml = (s: string) =>
     s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -217,10 +199,19 @@ export default function App() {
         </div>
       </header>
 
-      {/* HERO — мобильное фото чуть ниже и правее; переносы как в референсе; "Результат" с мягким свечением (без рамок) */}
-      <section className="relative min-h-[75vh] sm:min-h-[88vh] flex items-center pt-24 pb-8 sm:pb-12 hero-bg">
-        {/* деликатный градиент для читаемости текста на любом фоне */}
+      {/* HERO — мобайл: IMG (не режется), десктоп/планшет: background */}
+      <section className="relative min-h-[100dvh] md:min-h-[88vh] flex items-center pt-24 pb-6 md:pb-12 hero-bg">
+        {/* деликатный градиент для читаемости текста */}
         <div className="absolute inset-0 bg-gradient-to-r from-white/70 via-white/40 to-transparent md:from-white/50 md:via-white/30 md:to-transparent pointer-events-none"></div>
+
+        {/* МОБИЛКА: реальная картинка, чтобы не обрезало */}
+        <img
+          src="/images/IMG_6537.jpeg"
+          alt=""
+          className="hero-photo md:hidden"
+          loading="eager"
+          decoding="async"
+        />
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 w-full">
           <div className="max-w-2xl">
@@ -267,26 +258,18 @@ export default function App() {
 
         <style jsx>{`
           .hero-bg{
-            /* Фото из GitHub-репозитория в /public/images */
-            background-image: url('/images/IMG_6537.jpeg');
+            /* по умолчанию — ДЕСКТОП/ПЛАНШЕТ: фоновое фото */
+            background-image: url('/images/IMG_6243.jpeg');
             background-repeat: no-repeat;
             background-size: cover;
             background-position: right center;
             background-color: #e8e6e3;
           }
-          /* Десктоп: человек правее и меньше, много воздуха слева для заголовка */
-          @media (min-width:1024px){
-            .hero-bg{
-              background-size: 75%;
-              background-position: 112% center;
-              background-color: #ebe9e6;
-            }
-          }
-          /* Мобилка: максимально справа и чуть ниже — лицо не перекрывается текстом */
+          /* Мобилка: фона нет — используем <img>, как в эталоне */
           @media (max-width: 640px){
             .hero-bg{
-              background-size: 85%;
-              background-position: 98% 58%;
+              background-image: none;
+              background-color: #ebe9e6;
             }
           }
           /* Планшеты */
@@ -297,19 +280,36 @@ export default function App() {
               background-color: #ebe9e6;
             }
           }
-          .result-subtitle {
-            position: relative;
-            padding-top: 12px;
-            margin-top: 8px;
+          /* Десктоп: человек правее и меньше, больше воздуха слева */
+          @media (min-width:1024px){
+            .hero-bg{
+              background-size: 75%;
+              background-position: 112% center;
+              background-color: #ebe9e6;
+            }
           }
-          .result-subtitle::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0;
-            width: 64px; height: 2px;
+
+          /* МОБИЛЬНОЕ ФОТО — НЕ ОБРЕЗАЕТСЯ */
+          .hero-photo{
+            position:absolute;
+            right:-4%;       /* чуть за экран, как на примере */
+            bottom:0;
+            height:88vh;     /* почти вся высота, не короткое */
+            max-height:88dvh;
+            width:auto;
+            object-fit:contain;
+            pointer-events:none;
+          }
+
+          .result-subtitle{
+            position:relative; padding-top:12px; margin-top:8px;
+          }
+          .result-subtitle::before{
+            content:''; position:absolute; top:0; left:0; width:64px; height:2px;
             background: linear-gradient(90deg, rgba(59,130,246,.5) 0%, transparent 100%);
           }
-          /* Нежное свечение для слова "Результат" без рамок и подложек */
+
+          /* Нежное свечение для строки "Результат" — без рамки/подложки */
           .soft-glow{
             text-shadow:
               0 1px 0 rgba(255,255,255,.9),
@@ -318,7 +318,7 @@ export default function App() {
         `}</style>
       </section>
 
-      {/* 01 — фон: пудровый бежево-голубой, безопасные отступы */}
+      {/* 01 — фон: пудровый бежево-голубой, увеличены безопасные отступы заголовка */}
       <section id="comparison" className="relative py-10 sm:py-12 lg:py-14 bg-[linear-gradient(to_bottom,#f5f2ef_0%,#fdfcfb_60%)]">
         <SectionMarker n="01" />
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
@@ -484,11 +484,11 @@ export default function App() {
         </div>
       </section>
 
-      {/* 05 — бонусы: компактнее на мобиле, рилсы сохранены */}
+      {/* 05 — бонусы: компактнее на мобиле, не удаляю рилсы */}
       <section id="bonuses" className="relative py-9 sm:py-12 lg:py-14 bg-[linear-gradient(180deg,#f5f0ff_0%,#fff7fb_60%,#ffffff_100%)] overflow-hidden">
         <SectionMarker n="05" />
 
-        {/* деликатные конфетти */}
+        {/* конфетти — деликатно */}
         <div className="confetti-container">
           {[...Array(12)].map((_, i) => (
             <div key={i} className="confetti" style={{
@@ -566,8 +566,8 @@ export default function App() {
               "Повысишь средний чек через правильные предложения.",
               "Станешь увереннее — на всё есть готовый ответ.",
             ].map((t, i) => (
-              <div key={i} className="flex items-start gap-3 sm:gap-4 bg-white/90 p-4 sm:p-5 rounded-2xl border border-teал-50 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 reveal-up" style={{animationDelay:`${i*80}ms`}}>
-                <div className="w-5 h-5 sm:w-6 sm:h-6 bg-teal-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+              <div key={i} className="flex items-start gap-3 sm:gap-4 bg-white/90 p-4 sm:p-5 rounded-2xl border border-teal-50 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 reveal-up" style={{animationDelay:`${i*80}ms`}}>
+                <div className="w-5 h-5 sm:w-6 sm:h-6 bg-teал-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                   <svg className="w-3 h-3 sm:w-4 sm:h-4 text-teal-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                 </div>
                 <span className="text-sm sm:text-base lg:text-lg font-medium text-gray-800">{t}</span>
@@ -674,6 +674,7 @@ export default function App() {
                   <span className="text-4xl sm:text-5xl font-extrabold text-white">19€</span>
                 </div>
 
+                {/* таймер */}
                 <div className="mb-4 sm:mb-5">
                   <div className="inline-flex items-center gap-2 rounded-full bg-orange-500 px-3 sm:px-4 py-1.5 sm:py-2 hover:bg-orange-600 transition-colors">
                     <span className="text-white">⏰</span>
@@ -803,15 +804,10 @@ export default function App() {
         .animate-slide-up { animation: slide-up 0.3s ease-out; }
 
         .js-heading{
-          opacity: 0;
-          transform: translateY(14px);
-          transition: opacity .7s ease, transform .7s ease;
-          will-change: opacity, transform;
+          opacity: 0; transform: translateY(14px);
+          transition: opacity .7s ease, transform .7s ease; will-change: opacity, transform;
         }
-        .js-heading.head-in{
-          opacity: 1;
-          transform: translateY(0);
-        }
+        .js-heading.head-in{ opacity: 1; transform: translateY(0); }
 
         @media (hover: hover) {
           .hover\\:shadow-lg:hover { animation: float 2s ease-in-out infinite; }
