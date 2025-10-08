@@ -268,7 +268,7 @@ export default function App() {
         <style jsx>{`
           .hero-bg{
             /* Фото из GitHub-репозитория в /public/images */
-            background-image: url('/images/IMG_6243.jpeg');
+            background-image: url('/images/IMG_6537.jpeg');
             background-repeat: no-repeat;
             background-size: cover;
             background-position: right center;
